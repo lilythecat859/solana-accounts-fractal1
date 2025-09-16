@@ -1,0 +1,31 @@
+[package]
+name    = "fractal-rpc"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0"
+
+[[bin]]
+name = "rpc"
+path = "src/main.rs"
+
+[dependencies]
+fractal-shard = { path = "../fractal-shard" }
+fractal-rle    = { path = "../fractal-rle" }
+
+axum                 = { workspace = true }
+tower                = { workspace = true }
+tower-http           = { workspace = true }
+tokio                = { workspace = true }
+hyper                = { workspace = true }
+serde                = { workspace = true }
+serde_json           = { workspace = true }
+bincode              = { workspace = true }
+tracing              = { workspace = true }
+tracing-subscriber   = { workspace = true }
+prometheus           = { workspace = true }
+clap                 = { workspace = true }
+dotenv               = { workspace = true }
+anyhow               = { workspace = true }
+thiserror            = { workspace = true }
+lazy_static          = { workspace = true }
+futures              = "0.3"
