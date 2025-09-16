@@ -17,7 +17,7 @@
 
 ## Quick Start
 ```bash
-docker run -p 8899:8899 ghcr.io/YOURNAME/fractal-rpc:v0.1.0
+docker run -p 8899:8899 ghcr.io/lilythecat859/fractal-rpc:v0.1.0
 curl -XPOST localhost:8899/getProgramAccounts \
      -H 'Content-Type: application/json' \
      -d '{"program":"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss7623VQ5DA"}'
