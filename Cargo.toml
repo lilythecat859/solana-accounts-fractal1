@@ -34,3 +34,6 @@ dotenv               = "0.15"
 # Build
 anyhow               = "1.0"
 thiserror            = "1.0"
+[patch.crates-io]
+solana_rbpf = { version = "0.8.2" }
+
