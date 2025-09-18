@@ -34,9 +34,11 @@ HTTP front‑end to any number of replicas behind a load‑balancer.
 
 ### How to enable
 
-1. **Copy the example env file**  
+# Single‑node (default)
+docker compose up --build -d
 
-   ```bash
-   cp .env.example .env
+# Distributed (override automatically applied)
+docker compose -f docker-compose.yml -f docker-compose.override.yml up --build -d
+
 
 
