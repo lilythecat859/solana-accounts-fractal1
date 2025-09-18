@@ -1,0 +1,48 @@
+version: "3.9"
+services:
+  rpc:
+    build: .
+    ports:
+      - "8899:8899"
+      - "9090:9090"
+    environment:
+      - RUST_LOG=info
+      # Uncomment the line below to enable the distributed cache.
+      # - REDIS_URL=redis://redis:6379/
+      # - API_KEY=supersecret
+      # - DOWNSTREAM_RPC=http://validator:8899
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "60", "1"] # snapshot every minute
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9091:9090"   # Host port 9091 maps to container's 9090 (metrics)
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    restart: unless-stopped
+
+volumes:
+  grafana-storage:
