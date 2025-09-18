@@ -8,3 +8,14 @@ license = "AGPL-3.0"
 solana-sdk = { workspace = true }
 dashmap    = { workspace = true }
 lazy_static= { workspace = true }
+
+# ----- OPTIONAL DEPENDENCY FOR DISTRIBUTED MODE -----
+redis = { version = "0.25", optional = true }
+
+[features]
+# The default build does **not** include the distributed cache.
+default = []
+
+# Enable this feature if you want the Redis‑backed shared cache.
+distributed = ["redis"]
+
