@@ -1,0 +1,252 @@
+openapi: 3.0.3
+info:
+  title: Fractal Accounts RPC
+  version: 0.1.0
+  description: High‑performance accounts‑domain RPC for Solana (full JSON‑RPC surface)
+servers:
+  - url: http://localhost:8899
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+        '503':
+          description: Service unavailable (cache empty)
+
+  /metrics:
+    get:
+      summary: Prometheus metrics
+      responses:
+        '200':
+          description: Plaintext Prometheus exposition format
+
+  /getProgramAccounts:
+    post:
+      summary: Optimised getProgramAccounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetProgramAccountsReq'
+      responses:
+        '200':
+          description: List of accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountResp'
+        '400':
+          description: Bad request
+
+  /getMultipleAccounts:
+    post:
+      summary: Batch fetch of accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetMultipleAccountsReq'
+      responses:
+        '200':
+          description: Array of optional accounts (null if not found)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountRespOrNull'
+
+  /getAccountInfo:
+    post:
+      summary: Fetch a single account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetAccountInfoReq'
+      responses:
+        '200':
+          description: Optional account (null if not found)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountRespOrNull'
+
+  /getTokenAccountsByOwner:
+    post:
+      summary: Fast token‑account lookup by owner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetTokenAccountsByOwnerReq'
+      responses:
+        '200':
+          description: List of token accounts owned by the address
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountResp'
+
+  /getLargestTokenAccounts:
+    post:
+      summary: Return the N largest token accounts for a mint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetLargestTokenAccountsReq'
+      responses:
+        '200':
+          description: List of accounts sorted by lamports (descending)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountResp'
+
+  /simulateTransaction:
+    post:
+      summary: Forwarded simulateTransaction call (proxy)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Full Solana simulateTransaction request (forwarded verbatim)
+      responses:
+        '200':
+          description: Same as the downstream RPC
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /ws:
+    get:
+      summary: WebSocket subscription for account/slot updates
+      parameters:
+        - in: query
+          name: program
+          schema:
+            type: string
+          description: Optional program filter (only events for accounts owned by this program)
+        - in: query
+          name: owner
+          schema:
+            type: string
+          description: Optional owner filter (only events for this pubkey)
+      responses:
+        '101':
+          description: Switching protocols (WebSocket)
+
+components:
+  schemas:
+    GetProgramAccountsReq:
+      type: object
+      properties:
+        program:
+          type: string
+          example: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Filter'
+    Filter:
+      oneOf:
+        - type: object
+          required: [memcmp]
+          properties:
+            memcmp:
+              type: object
+              required: [offset, bytes]
+              properties:
+                offset:
+                  type: integer
+                bytes:
+                  type: string
+                  description: Base64‑encoded bytes to match
+        - type: object
+          required: [datasize]
+          properties:
+            datasize:
+              type: object
+              required: [size]
+              properties:
+                size:
+                  type: integer
+    GetMultipleAccountsReq:
+      type: object
+      properties:
+        pubkeys:
+          type: array
+          items:
+            type: string
+        encoding:
+          type: string
+          enum: [base64, base58, jsonParsed]
+    GetAccountInfoReq:
+      type: object
+      properties:
+        pubkey:
+          type: string
+        encoding:
+          type: string
+          enum: [base64, base58, jsonParsed]
+    GetTokenAccountsByOwnerReq:
+      type: object
+      properties:
+        owner:
+          type: string
+        mint:
+          type: string
+          nullable: true
+        limit:
+          type: integer
+        offset:
+          type: integer
+    GetLargestTokenAccountsReq:
+      type: object
+      properties:
+        mint:
+          type: string
+        limit:
+          type: integer
+    AccountResp:
+      type: object
+      properties:
+        pubkey:
+          type: string
+        lamports:
+          type: integer
+        data:
+          type: string
+          description: Base64‑encoded account data
+        owner:
+          type: string
+        executable:
+          type: boolean
+        rent_epoch:
+          type: integer
+    AccountRespOrNull:
+      oneOf:
+        - $ref: '#/components/schemas/AccountResp'
+        - type: "null"
+        
