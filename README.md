@@ -7,17 +7,22 @@
 ![License: AGPL v3](https:// drop.svg)
 ![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Fdemo%2Ffractal--rpc%3Av0.1.0-blue)
 
-> Standalone, high-performance accounts-domain RPC for Solance, decoupled from the validator, fed by a simple Geyser stream.
->
-> - 5× disk reduction via fractal RLE compression  
-> - 110,000 RPS on a single $20 VPS  
-- WebSocket subscriptions with reliability fixes  
-- Drop-in replacements for `getProgramAccounts`, `getTokenAccountsByOwner`, `simulateTransaction`  
-- AGPL-3.0 licensed  
+# Fractal Accounts‑Domain RPC
 
-## Quick Start
+A **stand‑alone, high‑performance, accounts‑only RPC** for Solana that:
+
+* consumes the **Geyser account stream**,
+* stores every account in a **sharded in‑memory hash map** (with optional Redis‑backed distribution),
+* serves the **full accounts‑domain JSON‑RPC surface** (`getProgramAccounts`, `getMultipleAccounts`, token fast‑paths, `simulateTransaction`, …),
+* pushes **real‑time WebSocket events**,
+* provides **Prometheus metrics**, **health‑checks**, **rate‑limiting**, **API‑key auth**, and **TLS termination** (via Nginx/Caddy).
+
+## Quick start (single‑node)
+
 ```bash
-docker run -p 8899:8899 ghcr.io/lilythecat859/fractal-rpc:v0.1.0
-curl -XPOST localhost:8899/getProgramAccounts \
-     -H 'Content-Type: application/json' \
-     -d '{"program":"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss7623VQ5DA"}'
+# 1️⃣ Build the Docker image
+make build
+
+# 2️⃣ Run locally (no Redis – single‑node mode)
+docker compose up -d rpc prometheus grafana
+
