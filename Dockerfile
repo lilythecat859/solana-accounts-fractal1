@@ -1,18 +1,42 @@
-# Stage 1 – build the Rust binaries
-FROM rust:1.78 AS builder
-WORKDIR /build
+---------- Builder ----------
+FROM rust:1.80-slim AS builder
 
-# caching dependencies
-COPY Cargo.toml .
-COPY crates crates
-RUN cargo fetch
+WORKDIR /app
 
-COPY src src
-RUN cargo build --release --bin rpc --bin ingest
+# Build‑time dependencies (OpenSSL headers, pkg‑config)
+RUN apt-get update && \
+    apt-get install -y pkg-config libssl-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-# Stage 2 – runtime image
+# Cache Cargo dependencies
+COPY Cargo.toml Cargo.lock ./
+RUN mkdir -p crates/ingest/src crates/fractal-rle/src crates/fractal-shard/src crates/rpc/src \
+    && echo "fn main() {}" > crates/rpc/src/main.rs \
+    && cargo build --release --bin fractal-rpc \
+    && rm -rf crates/*/src
+
+# Copy the real source and build the final binary
+COPY . .
+RUN touch crates/rpc/src/main.rs && cargo build --release --bin fractal-rpc
+
+# ---------- Runtime ----------
 FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/*
-COPY --from=5 /build/target/release/rpc /usr/local/bin/rpc
-COPY --from=3 /build/target/release/ingest /usr/local/bin/ingest
-ENTRYPOINT ["rpc"]           # default binary to run
+
+# Runtime dependencies (CA certs + OpenSSL shared lib)
+RUN apt-get update && \
+    apt-get install -y ca-certificates libssl3 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create a non‑root user for security
+RUN useradd -m appuser
+WORKDIR /home/appuser
+COPY --from=builder /app/target/release/fractal-rpc /usr/local/bin/fractal-rpc
+RUN chown appuser:appuser /usr/local/bin/fractal-rpc
+
+USER appuser
+
+EXPOSE 8899 9090
+
+HEALTHCHECK CMD curl -f http://localhost:8899/health || exit 1
+
+CMD ["fractal-rpc"]
