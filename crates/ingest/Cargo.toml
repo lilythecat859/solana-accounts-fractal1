@@ -1,15 +1,19 @@
+cat > crates/ingest/Cargo.toml <<'EOF'
 [package]
-name    = "fractal-ingest"
+name = "fractal-ingest"
 version = "0.1.0"
 edition = "2021"
 license = "AGPL-3.0"
-
 [lib]
+name = "fractal_ingest"
 crate-type = ["cdylib"]
-
 [dependencies]
+fractal-shard = { path = "../fractal-shard" }
 solana-geyser-plugin-interface = { workspace = true }
-solana-sdk                     = { workspace = true }
-fractal-shard                  = { path = "../fractal-shard" }
-tracing                        = { workspace = true }
-tokio                          = { workspace = true }
+solana-sdk = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tonic = { workspace = true }
+geyser-grpc = { workspace = true }
+anyhow = { workspace = true }
+EOF
