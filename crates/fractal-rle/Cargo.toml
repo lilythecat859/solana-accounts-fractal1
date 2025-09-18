@@ -1,29 +1,7 @@
-# crates/fractal-rle/Cargo.toml
 [package]
 name = "fractal-rle"
 version = "0.1.0"
 edition = "2021"
-description = "Thin LZ4 (de)compression helpers used by the Fractal accounts‑domain RPC"
 license = "AGPL-3.0"
-repository = "https://github.com/lilythecat859/solana-accounts-fractal"
-publish = false   # internal crate – not published to crates.io
-
-# Inherit the workspace’s resolver and common metadata
-[workspace]
-# (empty – the workspace root already defines the resolver = "2")
-
 [dependencies]
-# Pull the exact LZ4 version from the workspace table
-lz4 = { workspace = true }
-
-# Optional: if you ever want to (de)serialize arbitrary data before/after
-# compression you can enable the `bincode` feature.  It’s not required for the
-# current code but makes the crate more generally useful.
-bincode = { version = "1", optional = true }
-
-[features]
-# By default we ship only the core LZ4 helpers.
-default = []
-
-# Enable the optional `bincode` support.
-bincode = ["dep:bincode"]
+lz4 = "1"
