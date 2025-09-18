@@ -26,3 +26,17 @@ make build
 # 2️⃣ Run locally (no Redis – single‑node mode)
 docker compose up -d rpc prometheus grafana
 
+## Distributed Mode (multiple Fractal instances)
+
+Fractal can run **horizontally** by sharing a Redis cache.  
+All Fractal containers read/write the same account data, so you can scale the
+HTTP front‑end to any number of replicas behind a load‑balancer.
+
+### How to enable
+
+1. **Copy the example env file**  
+
+   ```bash
+   cp .env.example .env
+
+
